@@ -220,16 +220,6 @@ JOIN covid_data.dbo.vac vac
 FROM 
   #percent_pop_vac
   
-  ----VIEW - world wide
-
-SELECT
- SUM(new_cases) AS worldwide_cases,
- SUM(CAST(new_deaths as int)) AS worldwide_deaths,
- SUM(CAST(new_deaths as int))/SUM(new_cases)*100 AS death_percent
-FROM
-  covid_data.dbo.deaths
-WHERE 
-  continent IS NOT NULL 
 
   ----
 CREATE VIEW PercentPopVac as
@@ -246,6 +236,54 @@ FROM
 JOIN covid_data.dbo.vac vac
   on dea.location = vac.location
   AND dea.date = vac.date
+  
+    ----VIEW - world wide
+
+SELECT
+ SUM(new_cases) AS worldwide_cases,
+ SUM(CAST(new_deaths as int)) AS worldwide_deaths,
+ SUM(CAST(new_deaths as int))/SUM(new_cases)*100 AS death_percent
+FROM
+  covid_data.dbo.deaths
+WHERE 
+  continent IS NOT NULL 
+
+  ---- continent total death
+
+SELECT 
+  location,
+  SUM(CAST(new_deaths as bigint)) as total_death_count
+FROM covid_data.dbo.deaths
+WHERE location in ('europe', 'north america', 'south america', 'asia', 'africa', 'oceania')
+GROUP BY location
+ORDER BY total_death_count DESC
+
+ ---- highest infection rate % compared to population 
+
+ SELECT
+ location,
+ population,
+ max(total_cases) as highest_infection_Rate,
+ max((total_cases/population))*100 AS infection_rate
+FROM
+  covid_data.dbo.deaths
+ -- location LIKE '%STATES%'
+group by location, population
+order by infection_rate DESC 
+
+---- dates
+
+ SELECT
+ date,
+ location,
+ population,
+ max(total_cases) as highest_infection_Rate,
+ max((total_cases/population))*100 AS infection_rate
+FROM
+  covid_data.dbo.deaths
+ -- location LIKE '%STATES%'
+group by location, population, date
+order by infection_rate DESC 
 
 
 
